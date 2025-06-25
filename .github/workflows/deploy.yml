@@ -1,0 +1,33 @@
+name: Deploy with Submodule Tag
+
+on:
+  workflow_dispatch:
+    inputs:
+      submodule_tag:
+        description: "Tag to checkout in submodule"
+        required: true
+        default: "v1.0.0"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout main repository with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout submodule at specific tag
+        run: |
+          cd submodules/test-submodule
+          git fetch --tags
+          git checkout ${{ github.event.inputs.submodule_tag }}
+
+      - name: Verify submodule tag
+        run: |
+          cd submodules/test-submodule
+          echo "Checked out tag:"
+          git describe --tags --exact-match || echo "Not on a tag"
+          cat version.txt
