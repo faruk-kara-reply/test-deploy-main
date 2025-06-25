@@ -22,7 +22,7 @@ jobs:
       - name: Checkout submodule at specific branch
         run: |
           cd submodules/test-submodule
-          git fetch origin
+          git fetch origin +refs/heads/*:refs/remotes/origin/*
           git checkout ${{ github.event.inputs.submodule_branch }}
 
       - name: Verify submodule branch
