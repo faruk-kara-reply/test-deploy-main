@@ -19,22 +19,11 @@ jobs:
           submodules: recursive
           token: ${{ secrets.SUBMODULE_TOKEN }}
 
-      - name: Ensure submodule fetches all branches
-        run: |
-          cd submodules/test-submodule
-          git fetch --all --tags
-          git remote set-branches origin '*'
-          git fetch origin
-
       - name: Checkout submodule at specific branch
         run: |
           cd submodules/test-submodule
-          if git show-ref --verify --quiet refs/heads/${{ github.event.inputs.submodule_branch }}; then
-            git checkout ${{ github.event.inputs.submodule_branch }}
-          else
-            echo "Branch ${{ github.event.inputs.submodule_branch }} does not exist in the submodule."
-            exit 1
-          fi
+          git fetch origin
+          git checkout ${{ github.event.inputs.submodule_branch }}
 
       - name: Verify submodule branch
         run: |
@@ -50,12 +39,12 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           cd submodules/test-submodule
-          git fetch --all
+          git fetch origin
           git checkout ${{ github.event.inputs.submodule_branch }}
           cd ../..
 
           git add submodules/test-submodule
-          git commit -m "Update submodule to ${{ github.event.inputs.submodule_branch }}" || echo "No changes"
+          git commit -m "Update submodule to branch ${{ github.event.inputs.submodule_branch }}" || echo "No changes"
           git push origin HEAD:main
         env:
           GITHUB_TOKEN: ${{ secrets.SUBMODULE_TOKEN }}
