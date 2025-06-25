@@ -13,29 +13,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout main repository (without submodules)
+      - name: Checkout main repository with submodules
         uses: actions/checkout@v4
         with:
+          submodules: recursive
           token: ${{ secrets.SUBMODULE_TOKEN }}
-          submodules: false
 
-      - name: Initialize submodule at specific branch with auth
+      - name: Checkout submodule at specific branch
         run: |
-          git submodule init
-          git submodule set-url submodules/test-submodule https://x-access-token:${{ secrets.SUBMODULE_TOKEN }}@github.com/faruk-kara-reply/test-submodule.git
-          git submodule update --init --depth 1 submodules/test-submodule
-
           cd submodules/test-submodule
-          git remote set-url origin https://x-access-token:${{ secrets.SUBMODULE_TOKEN }}@github.com/faruk-kara-reply/test-submodule.git
-          git fetch origin ${{ github.event.inputs.submodule_branch }}
-          git checkout -b ${{ github.event.inputs.submodule_branch }} origin/${{ github.event.inputs.submodule_branch }}
+          git fetch
+          git checkout ${{ github.event.inputs.submodule_branch }}
 
-      - name: Verify submodule branch and contents
+      - name: Verify submodule branch
         run: |
           cd submodules/test-submodule
           echo "Checked out branch:"
           git branch --show-current
-          echo "Submodule version.txt:"
           cat version.txt
 
       - name: Commit updated submodule pointer to main repo
@@ -44,8 +38,13 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+          cd submodules/test-submodule
+          git fetch
+          git checkout ${{ github.event.inputs.submodule_branch }}
+          cd ../..
+
           git add submodules/test-submodule
-          git commit -m "Update submodule to branch ${{ github.event.inputs.submodule_branch }}" || echo "No changes"
+          git commit -m "Update submodule to ${{ github.event.inputs.submodule_branch }}" || echo "No changes"
           git push origin HEAD:main
         env:
           GITHUB_TOKEN: ${{ secrets.SUBMODULE_TOKEN }}
