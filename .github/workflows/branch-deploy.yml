@@ -22,8 +22,13 @@ jobs:
       - name: Checkout submodule at specific branch
         run: |
           cd submodules/test-submodule
-          git fetch
-          git checkout ${{ github.event.inputs.submodule_branch }}
+          git fetch --all
+          if git show-ref --verify --quiet refs/heads/${{ github.event.inputs.submodule_branch }}; then
+            git checkout ${{ github.event.inputs.submodule_branch }}
+          else
+            echo "Branch ${{ github.event.inputs.submodule_branch }} does not exist in the submodule."
+            exit 1
+          fi
 
       - name: Verify submodule branch
         run: |
@@ -39,7 +44,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           cd submodules/test-submodule
-          git fetch
+          git fetch --all
           git checkout ${{ github.event.inputs.submodule_branch }}
           cd ../..
 
