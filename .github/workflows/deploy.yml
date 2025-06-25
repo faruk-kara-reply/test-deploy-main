@@ -1,12 +1,12 @@
-name: Deploy with Submodule Tag
+name: Deploy with Submodule Branch
 
 on:
   workflow_dispatch:
     inputs:
-      submodule_tag:
-        description: "Tag to checkout in submodule"
+      submodule_branch:
+        description: "Branch to checkout in submodule"
         required: true
-        default: "v1.0.0"
+        default: "main"
 
 jobs:
   deploy:
@@ -19,17 +19,17 @@ jobs:
           submodules: recursive
           token: ${{ secrets.SUBMODULE_TOKEN }}
 
-      - name: Checkout submodule at specific tag
+      - name: Checkout submodule at specific branch
         run: |
           cd submodules/test-submodule
-          git fetch --tags
-          git checkout ${{ github.event.inputs.submodule_tag }}
+          git fetch origin
+          git checkout ${{ github.event.inputs.submodule_branch }}
 
-      - name: Verify submodule tag
+      - name: Verify submodule branch
         run: |
           cd submodules/test-submodule
-          echo "Checked out tag:"
-          git describe --tags --exact-match || echo "Not on a tag"
+          echo "Checked out branch:"
+          git branch --show-current
           cat version.txt
 
       - name: Commit updated submodule pointer to main repo
@@ -39,12 +39,12 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           cd submodules/test-submodule
-          git fetch --tags
-          git checkout ${{ github.event.inputs.submodule_tag }}
+          git fetch origin
+          git checkout ${{ github.event.inputs.submodule_branch }}
           cd ../..
 
           git add submodules/test-submodule
-          git commit -m "Update submodule to ${{ github.event.inputs.submodule_tag }}" || echo "No changes"
+          git commit -m "Update submodule to branch ${{ github.event.inputs.submodule_branch }}" || echo "No changes"
           git push origin HEAD:main
         env:
           GITHUB_TOKEN: ${{ secrets.SUBMODULE_TOKEN }}
