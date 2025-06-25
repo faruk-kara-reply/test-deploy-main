@@ -21,15 +21,12 @@ jobs:
 
       - name: Initialize submodule at specific branch with auth
         run: |
-          # Set authenticated URL for submodule
           git submodule init
           git submodule set-url submodules/test-submodule https://x-access-token:${{ secrets.SUBMODULE_TOKEN }}@github.com/faruk-kara-reply/test-submodule.git
           git submodule update --init --depth 1 submodules/test-submodule
 
-          # Checkout specific branch
           cd submodules/test-submodule
-          git init
-          git remote add origin https://x-access-token:${{ secrets.SUBMODULE_TOKEN }}@github.com/faruk-kara-reply/test-submodule.git
+          git remote set-url origin https://x-access-token:${{ secrets.SUBMODULE_TOKEN }}@github.com/faruk-kara-reply/test-submodule.git
           git fetch origin ${{ github.event.inputs.submodule_branch }}
           git checkout -b ${{ github.event.inputs.submodule_branch }} origin/${{ github.event.inputs.submodule_branch }}
 
