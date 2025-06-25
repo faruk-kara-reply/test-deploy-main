@@ -31,3 +31,20 @@ jobs:
           echo "Checked out tag:"
           git describe --tags --exact-match || echo "Not on a tag"
           cat version.txt
+
+      - name: Commit updated submodule pointer to main repo
+        if: success()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          cd submodules/test-submodule
+          git fetch --tags
+          git checkout ${{ github.event.inputs.submodule_tag }}
+          cd ../..
+
+          git add submodules/test-submodule
+          git commit -m "Update submodule to ${{ github.event.inputs.submodule_tag }}" || echo "No changes"
+          git push origin HEAD:main
+        env:
+          GITHUB_TOKEN: ${{ secrets.SUBMODULE_TOKEN }}
