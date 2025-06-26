@@ -39,8 +39,8 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           cd submodules/test-submodule
-          git fetch origin
-          git checkout ${{ github.event.inputs.submodule_branch }}
+          git fetch origin +refs/heads/*:refs/remotes/origin/*
+          git checkout origin/${{ github.event.inputs.submodule_branch }}
           cd ../..
 
           git add submodules/test-submodule
