@@ -1,0 +1,41 @@
+# .github/workflows/deploy-submodule-auto.yml
+# Automatic deployment workflow that updates the submodule to match the pushed release tag and commits the change to main.
+name: Auto Deploy on Tag Push
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main repo with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+          token: ${{ secrets.SUBMODULE_TOKEN }}
+
+      - name: Ensure tag is from main
+        run: |
+          git fetch origin main
+          git merge-base --is-ancestor origin/main ${{ github.sha }} || (echo "Tag not from main branch!" && exit 1)
+
+      - name: Checkout submodule at matching tag
+        run: |
+          cd submodules/test-submodule
+          git fetch --tags
+          git checkout ${{ github.ref_name }}
+
+      - name: Commit updated submodule pointer to main repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          cd submodules/test-submodule
+          git checkout ${{ github.ref_name }}
+          cd ../..
+          git add submodules/test-submodule
+          git commit -m "Release: submodule updated to ${{ github.ref_name }}" || echo "No changes"
+          git push origin HEAD:main
